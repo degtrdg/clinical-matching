@@ -2,10 +2,9 @@ import logging
 import os
 import time
 import uuid
-
-import dotenv
-import openai
 import uvicorn
+
+# import dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,8 +13,8 @@ from fastapi import FastAPI, UploadFile, HTTPException
 import pandas as pd
 from fastapi import File
 
-dotenv.load_dotenv(".env")
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+# dotenv.load_dotenv(".env")
+# openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 app = FastAPI()
 
@@ -94,4 +93,4 @@ def error_handler(request, exc):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=80)
