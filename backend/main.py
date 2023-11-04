@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, HTTPException
 import pandas as pd
 from fastapi import File
+import httpx
 
 # dotenv.load_dotenv(".env")
 # openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -41,11 +42,18 @@ def root():
 async def create_upload_file(file: UploadFile = File(...)):
     if file.filename.endswith(".csv"):
         dataframe = pd.read_csv(file.file)
+
+        modelResponse = httpx.post("https://api.huggingface.com/", data=dataframe)
         return dataframe.to_dict("records")
     else:
         raise HTTPException(
             status_code=400, detail="Invalid file type. Please upload a CSV file."
         )
+
+
+@app.get("/getDiagnosis/")
+async def getDiagnosis():
+    return "hi"
 
 
 @app.post("/rand_request")
