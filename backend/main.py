@@ -10,6 +10,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from fastapi import FastAPI, UploadFile, HTTPException
+import pandas as pd
+from fastapi import File
 
 dotenv.load_dotenv(".env")
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -24,13 +27,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class RandRequest(BaseModel):
     query: str
+
 
 @app.post("/")
 @app.get("/")
 def root():
     return "hi"
+
+
+@app.post("/uploadcsv/")
+async def create_upload_file(file: UploadFile = File(...)):
+    if file.filename.endswith(".csv"):
+        dataframe = pd.read_csv(file.file)
+        return dataframe.to_dict("records")
+    else:
+        raise HTTPException(
+            status_code=400, detail="Invalid file type. Please upload a CSV file."
+        )
+
 
 @app.post("/rand_request")
 async def rand_request_endpoint(
@@ -63,6 +80,7 @@ async def rand_request_endpoint(
     except Exception as e:
         return error_handler(request, e)
 
+
 def error_handler(request, exc):
     return JSONResponse(
         status_code=500,
@@ -73,6 +91,7 @@ def error_handler(request, exc):
             },
         },
     )
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
