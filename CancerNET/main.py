@@ -1,0 +1,36 @@
+import gradio as gr
+import VAEClass
+from VAEClass import VAE
+import numpy as np
+import pandas as pd
+
+params = VAEClass.open_file("cancernet_hyperparams.pickle")
+
+
+dxNet = VAE(
+    params["encoder"],
+    params["latent"],
+    params["decoder"],
+    [100, 6],
+    params["loss_weights"],
+)
+
+dxNet.build_multimodel()
+
+dxNet.xnet.load_weights("rare6class.h5")
+
+inp = gr.d
+
+inp = np.asarray(inp)
+label = gr.output.label()
+
+def test_inp(inp):
+    inp = np.asarray(inp)
+    output = dxNet.xnet.predict(inp)
+    out = np.asarray(output[1])
+    return out
+
+inp = gr.dataFrame()
+
+interface = gr.Interface(fn=test_inp, inputs=inp, outputs=label)
+interface.launch(inline=False)
