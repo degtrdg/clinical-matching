@@ -20,15 +20,29 @@ const navigation = [
 
 export default function Page({ params }: { params: { slug: string } }) {
     const [file, setFile] = useState<any>(null);
+    const [processing, setProcessing] = useState<boolean>(false);
     const patient: Patient | undefined = defaultPatients.find((patient) => patient.slug === params.slug);
 
-    function onSubmit(e: any) {
+    async function onSubmit(e: any) {
         e.preventDefault();
 
-        const form = e.target;
-        // const file = form.files[0];
-
-        console.log(file);
+        const formData = new FormData();
+        formData.append('file', file);
+      
+        try {
+          const response = await fetch('http://0.0.0.0:80/uploadcsv/', {
+            method: 'POST',
+            body: formData,
+          });
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log(data)
+        } catch (error) {
+          console.error("Failed to upload file:", error);
+          // Handle errors
+        }
     }
 
     function onAttach(e: any) {
@@ -67,7 +81,6 @@ export default function Page({ params }: { params: { slug: string } }) {
                                     onChange={onAttach}
                                 />
                                 <ArrowUpTrayIcon className="mx-auto h-6 w-6 text-gray-900" aria-hidden="true" />
-
 
                                 {
                                     file ? (
