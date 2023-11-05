@@ -27,10 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class RandRequest(BaseModel):
     query: str
-
 
 @app.post("/")
 @app.get("/")
@@ -51,9 +49,11 @@ async def create_upload_file(file: UploadFile = File(...)):
         )
 
 
-@app.get("/getDiagnosis/")
-async def getDiagnosis():
-    return "hi"
+# This is gonna get data from the  embeddings database
+@app.post("/get_data/")
+async def get_data(file: UploadFile = File(...)):
+    data = pd.read_csv(file.file)
+    return "This is a test"
 
 
 @app.post("/rand_request")
