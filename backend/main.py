@@ -27,10 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class RandRequest(BaseModel):
     query: str
-
 
 @app.post("/")
 @app.get("/")

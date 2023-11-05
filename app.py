@@ -1,6 +1,6 @@
 import gradio as gr
-import VAEClass
-from VAEClass import VAE
+from CancerNET.VAEClass import open_file
+from CancerNET.VAEClass import VAE
 import numpy as np
 import pandas as pd
 
