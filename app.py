@@ -20,7 +20,7 @@ dxNet.build_multimodel()
 dxNet.xnet.load_weights(r"./CancerNET/rare6class.h5")
 
 inp = gr.DataFrame
-label = gr.outputs.label()
+label = gr.outputs.Label()
 
 def test_inp(inp):
     print(inp)
