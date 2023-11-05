@@ -1,4 +1,5 @@
 import json
+import chromadb
 
 def load_json_file(file_path):
     try:
@@ -175,3 +176,31 @@ def turn_json_to_valid_metadata(d):
     json_wo_lists['Eligibility'] = eligibility_text
 
     return json_wo_lists
+
+def get_top_5_trials(patient_report):
+    """
+    Get the top 5 clinical trials through embedding search
+
+    :param patient_report: str, patient report
+    :param clinical_trials: list, list of clinical trials
+    :return: list, top 5 clinical trials
+    """
+    # Import Chroma and instantiate a client
+    client = chromadb.PersistentClient(path="./vector_db")
+    # Create a new Chroma collection to store the supporting evidence. We don't need to specify an embedding fuction, and the default will be used.
+    collection = client.get_collection("clinical_trials")
+    result = collection.query(
+    query_texts=[patient_report],
+    n_results=5,
+    # where={"metadata_field": "is_equal_to_this"},
+    # where_document={"$contains":"search_string"}
+    )
+    documents = result['documents'][0]
+    metadata =result['metadatas'][0]
+
+    result = {
+        'documents': documents,
+        'metadata': metadata
+    }
+
+    return result
