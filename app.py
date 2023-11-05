@@ -33,10 +33,10 @@ def test_inp(inp):
     output = dxNet.xnet.predict(inp)
     out = np.asarray(output[1])
     print(out)
-    predicted = make_categorical(out)
+    # predicted = make_categorical(out)
 
-    print(predicted)
-    result = {"output": predicted[0].tolist()}
+    # print(predicted)
+    result = {"output": out[0].tolist()}
     return result
 
 def make_categorical(y_score):
