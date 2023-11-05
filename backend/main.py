@@ -25,6 +25,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 cancer_types = [
     "Adrenocortical carcinoma (ACC)",
     "Bladder urothelial carcinoma (BLCA)",
@@ -86,18 +87,13 @@ async def create_upload_file(file: UploadFile = File(...)):
 
         # Extract the data; this skips the first element
         data = [[item] for item in dataframe.iloc[1:]]
-
         # Combine into the desired format
         result = {"headers": header, "data": data}
-
         # Set the client and then pass the info
-        client = Client(
-            "https://arnav-jain1-clinical-matching.hf.space/--replicas/9nhzd/"
-        )
+        client = Client("https://arnav-jain1-clinical-matching.hf.space/--replicas/9nhzd/")
         result = client.predict(result, api_name="/predict")
+
         # Convert result to dict with cancer_types as keys
-        print(type(result))
-        print(result)
         result_dict = dict(zip(cancer_types, result.get("output")))
 
         # Sort the dict by values in descending order
@@ -212,4 +208,4 @@ def error_handler(request, exc):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=80)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
