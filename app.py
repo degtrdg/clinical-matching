@@ -19,13 +19,13 @@ dxNet.build_multimodel()
 
 dxNet.xnet.load_weights(r"./CancerNET/rare6class.h5")
 
-inp = gr.d
-
-inp = np.asarray(inp)
+inp = gr.DataFrame
 label = gr.output.label()
 
 def test_inp(inp):
+    print(inp)
     inp = np.asarray(inp)
+    print(inp)
     output = dxNet.xnet.predict(inp)
     out = np.asarray(output[1])
     return out
