@@ -4,7 +4,7 @@ from CancerNET.VAEClass import VAE
 import numpy as np
 import pandas as pd
 
-params = open_file("cancernet_hyperparams.pickle")
+params = open_file(r"CancerNET\cancernet_hyperparams.pickle")
 
 
 dxNet = VAE(
@@ -17,7 +17,7 @@ dxNet = VAE(
 
 dxNet.build_multimodel()
 
-dxNet.xnet.load_weights("rare6class.h5")
+dxNet.xnet.load_weights(r"CancerNET\rare6class.h5")
 
 inp = gr.d
 
