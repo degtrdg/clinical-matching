@@ -1,12 +1,7 @@
 from gradio_client import Client
 import pandas as pd
-import requests
-import numpy as np
 
-
-api_url = 'https://huggingface.co/spaces/Arnav-Jain1/clinical-matching/app.py'
-
-
+# Read the data frame and get the first column 
 df = pd.read_csv(r"x_test2.csv")
 df = df.iloc[:, 0]
 # Assuming 'df' is now a Series after you've isolated the first column
@@ -20,20 +15,11 @@ data = [[item] for item in df.iloc[1:]]
 # Combine into the desired format
 result = {"headers": header, "data": data}
 
-response = requests.post(api_url, json=data)
+#Set the client and then pass the info
+client = Client("https://arnav-jain1-clinical-matching.hf.space/--replicas/9nhzd/")
+result = client.predict(result, 
+                        api_name="/predict" 
+)
 
-# Check if the request was successful
-if response.status_code == 200:
-    # Get the prediction from the response
-    prediction = response.json()
-    print(prediction)
-else:
-    # If the request failed, print the error
-    print(f"Request failed: {response.status_code}")
-    print(response.text)
-
-
-# client = Client("http://0.0.0.0:7860")
-# result = client.predict(result
-# )
-# print(result)
+#Print the result
+print(result)
