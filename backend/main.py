@@ -11,6 +11,7 @@ from fastapi import File
 import httpx
 from module.agent import get_patient_match_result
 from module.helpers import get_top_5_trials
+from gradio_client import Client
 
 # dotenv.load_dotenv(".env")
 # openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -24,12 +25,51 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+cancer_types = [
+    "Adrenocortical carcinoma (ACC)",
+    "Bladder urothelial carcinoma (BLCA)",
+    "Breast invasive carcinoma (BRCA)",
+    "Cervical squamous cell carcinoma and endocervical adenocarcinoma (CESC)",
+    "Cholangiocarcinoma (CHOL)",
+    "Colon adenocarcinoma (COAD)",
+    "Lymphoid neoplasm diffuse large B-cell lymphoma (DLBC)",
+    "Esophageal carcinoma (ESCA)",
+    "Glioblastoma multiforme (GBM)",
+    "Head and Neck squamous cell carcinoma (HNSC)",
+    "Kidney chromophobe (KICH)",
+    "Kidney renal clear cell carcinoma (KIRC)",
+    "Kidney renal papillary cell carcinoma (KIRP)",
+    "Acute myeloid leukemia (LAML)",
+    "Brain lower grade glioma (LGG)",
+    "Liver hepatocellular carcinoma (LIHC)",
+    "Lung adenocarcinoma (LUAD)",
+    "Lung squamous cell carcinoma (LUSC)",
+    "Mesothelioma (MESO)",
+    "Ovarian serous cystadenocarcinoma (OV)",
+    "Pancreatic adenocarcinoma (PAAD)",
+    "Pheochromocytoma and paraganglioma (PCPG)",
+    "Prostate adenocarcinoma (PRAD)",
+    "Rectum adenocarcinoma (READ)",
+    "Sarcoma (SARC)",
+    "Skin cutaneous melanoma (SKCM)",
+    "Stomach adenocarcinoma (STAD)",
+    "Testicular germ cell tumors (TGCT)",
+    "Thyroid carcinoma (THCA)",
+    "Thymoma (THYM)",
+    "Uterine corpus endometrial carcinoma (UCEC)",
+    "Uterine carcinosarcoma (UCS)",
+    "Uveal melanoma (UVM)",
+    "Normal Tissue (NORM)",
+]
+
 
 class RandRequest(BaseModel):
     query: str
 
+
 class PatientRequest(BaseModel):
     patient: str
+
 
 @app.post("/")
 @app.get("/")
@@ -41,13 +81,38 @@ def root():
 async def create_upload_file(file: UploadFile = File(...)):
     if file.filename.endswith(".csv"):
         dataframe = pd.read_csv(file.file)
+        dataframe = dataframe.iloc[:, 0]
+        header = [dataframe.name]
 
-        modelResponse = httpx.post("https://api.huggingface.com/", data=dataframe)
-        return dataframe.to_dict("records")
+        # Extract the data; this skips the first element
+        data = [[item] for item in dataframe.iloc[1:]]
+
+        # Combine into the desired format
+        result = {"headers": header, "data": data}
+
+        # Set the client and then pass the info
+        client = Client(
+            "https://arnav-jain1-clinical-matching.hf.space/--replicas/9nhzd/"
+        )
+        result = client.predict(result, api_name="/predict")
+        # Convert result to dict with cancer_types as keys
+        print(type(result))
+        print(result)
+        result_dict = dict(zip(cancer_types, result.get("output")))
+
+        # Sort the dict by values in descending order
+        sorted_result = dict(
+            sorted(result_dict.items(), key=lambda item: item[1], reverse=True)
+        )
+
+        # Get the top 5 items
+        top_5 = dict(list(sorted_result.items())[:5])
+        return top_5
     else:
         raise HTTPException(
             status_code=400, detail="Invalid file type. Please upload a CSV file."
         )
+
 
 @app.post("/get_patient_match_result/")
 async def get_patient_match_result_endpoint(
@@ -68,28 +133,31 @@ async def get_patient_match_result_endpoint(
 
         if not patient:
             raise ValueError("query is required")
-        
+
         results = []
-        for document, metadata in zip(top_5_trials["documents"], top_5_trials["metadata"]):
-            results.append( {
-                    "patient_match_result": get_patient_match_result(patient_report=patient, clinical_trial=document),
-                    "metadata": metadata
-                })
-        
+        for document, metadata in zip(
+            top_5_trials["documents"], top_5_trials["metadata"]
+        ):
+            results.append(
+                {
+                    "patient_match_result": get_patient_match_result(
+                        patient_report=patient, clinical_trial=document
+                    ),
+                    "metadata": metadata,
+                }
+            )
+
         response = JSONResponse(
             status_code=200,
             content={
                 "status": "success",
-                "data": {
-                    "result": results
-                },
+                "data": {"result": results},
             },
         )
         response.headers["Access-Control-Allow-Origin"] = "*"
         return response
     except Exception as e:
         return error_handler(request, e)
-
 
 
 # This is gonna get data from the  embeddings database
