@@ -1,4 +1,4 @@
-CancerNET/rare6class.h5 filter=lfs diff=lfs merge=lfs -text
+CancerNET/34_class_CancerNet_weights.h5 filter=lfs diff=lfs merge=lfs -text
 *.7z filter=lfs diff=lfs merge=lfs -text
 *.arrow filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
