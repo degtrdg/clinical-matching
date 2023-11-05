@@ -15,4 +15,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Run the command to start uvicorn
-CMD uvicorn main:app --port:8000 --host=0.0.0.0
+CMD exec uvicorn main:app --port  ${PORT} --host 0.0.0.0 --workers 1

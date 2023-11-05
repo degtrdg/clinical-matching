@@ -12,11 +12,13 @@ import httpx
 from module.agent import get_patient_match_result
 from module.helpers import get_top_5_trials
 from gradio_client import Client
+from module.get_data import get_data, open_file
 
 # dotenv.load_dotenv(".env")
 # openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 app = FastAPI()
+clusts = "C:\\Users\\joewc\\OneDrive\\Desktop\\HackUTD\\clinical-matching\\backend\\module\\clusts_dict.pickle"
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,7 +31,7 @@ app.add_middleware(
 cancer_types = [
     "Adrenocortical carcinoma (ACC)",
     "Bladder urothelial carcinoma (BLCA)",
-    "Breast invasive carcinoma (BRCA)",
+    "Ovarian serous cystadenocarcinoma (OV)",
     "Cervical squamous cell carcinoma and endocervical adenocarcinoma (CESC)",
     "Cholangiocarcinoma (CHOL)",
     "Colon adenocarcinoma (COAD)",
@@ -46,14 +48,14 @@ cancer_types = [
     "Lung adenocarcinoma (LUAD)",
     "Lung squamous cell carcinoma (LUSC)",
     "Mesothelioma (MESO)",
-    "Ovarian serous cystadenocarcinoma (OV)",
+    "Breast invasive carcinoma (BRCA)",
     "Pancreatic adenocarcinoma (PAAD)",
     "Pheochromocytoma and paraganglioma (PCPG)",
     "Prostate adenocarcinoma (PRAD)",
     "Rectum adenocarcinoma (READ)",
     "Sarcoma (SARC)",
     "Skin cutaneous melanoma (SKCM)",
-    "Stomach adenocarcinoma (STAD)",
+    "Breast invasive carcinoma (BRCA)",
     "Testicular germ cell tumors (TGCT)",
     "Thyroid carcinoma (THCA)",
     "Thymoma (THYM)",
@@ -80,8 +82,8 @@ def root():
 
 @app.post("/uploadcsv/")
 async def create_upload_file(file: UploadFile = File(...)):
-    if file.filename.endswith(".csv"):
-        dataframe = pd.read_csv(file.file)
+    if file.filename.endswith(".csv") or file.filename.endswith(".txt"):
+        dataframe = pd.read_csv(file.file, header=0, index_col=0, sep=",")
         dataframe = dataframe.iloc[:, 0]
         header = [dataframe.name]
 
@@ -154,13 +156,6 @@ async def get_patient_match_result_endpoint(
         return response
     except Exception as e:
         return error_handler(request, e)
-
-
-# This is gonna get data from the  embeddings database
-@app.post("/get_data/")
-async def get_data(file: UploadFile = File(...)):
-    data = pd.read_csv(file.file)
-    return "This is a test"
 
 
 @app.post("/rand_request")
