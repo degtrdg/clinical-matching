@@ -1,7 +1,3 @@
-import logging
-import os
-import time
-import uuid
 import uvicorn
 
 # import dotenv
@@ -13,6 +9,8 @@ from fastapi import FastAPI, UploadFile, HTTPException
 import pandas as pd
 from fastapi import File
 import httpx
+from module.agent import get_patient_match_result
+from module.helpers import get_top_5_trials
 
 # dotenv.load_dotenv(".env")
 # openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -29,6 +27,9 @@ app.add_middleware(
 
 class RandRequest(BaseModel):
     query: str
+
+class PatientRequest(BaseModel):
+    patient: str
 
 @app.post("/")
 @app.get("/")
@@ -47,6 +48,48 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(
             status_code=400, detail="Invalid file type. Please upload a CSV file."
         )
+
+@app.post("/get_patient_match_result/")
+async def get_patient_match_result_endpoint(
+    request: PatientRequest,
+):
+    """
+    Saves a resource to a starterpac and returns a new ID and URL for the resource
+    @params:
+        query: str
+    @returns:
+        result: str
+    """
+    try:
+        patient = request.patient
+
+        # Get the top 5 clinical trials through embedding search
+        top_5_trials = get_top_5_trials(patient_report=patient)
+
+        if not patient:
+            raise ValueError("query is required")
+        
+        results = []
+        for document, metadata in zip(top_5_trials["documents"], top_5_trials["metadata"]):
+            results.append( {
+                    "patient_match_result": get_patient_match_result(patient_report=patient, clinical_trial=document),
+                    "metadata": metadata
+                })
+        
+        response = JSONResponse(
+            status_code=200,
+            content={
+                "status": "success",
+                "data": {
+                    "result": results
+                },
+            },
+        )
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
+    except Exception as e:
+        return error_handler(request, e)
+
 
 
 # This is gonna get data from the  embeddings database
