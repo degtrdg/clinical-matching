@@ -53,10 +53,8 @@ export default function Page({ params }: { params: { slug: string } }) {
     const [trials, setTrials] = useState<any[]>([]);
 
     async function getPatientData() {
-        const patients: Patient[] | undefined = (await getPatient(params.slug)).patients;
-
-        if (!patients) return [];
-        return patients
+        const patient: Patient | undefined = (await getPatient(params.slug)).patient;
+        return patient
     }
 
     const debugging = true;
@@ -86,7 +84,9 @@ export default function Page({ params }: { params: { slug: string } }) {
 
     useEffect(() => {
         getPatientData().then((patientData) => {
-            setPatient(patientData);
+            if (patientData) {
+                setPatient(patientData);
+            }
         });
         if (debugging) {
             setTrials(cachedPatientTrialResponse.data.result)
@@ -255,7 +255,7 @@ export default function Page({ params }: { params: { slug: string } }) {
                             Related Trials
                         </h3>
 
-                        <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
+                        <div className="divide-y mt-4 divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
                             {trials.map((trial, trialIdx) => (
                                 <div
                                     key={trial.metadata["Brief Title"]}
@@ -278,6 +278,12 @@ export default function Page({ params }: { params: { slug: string } }) {
                                         </p>
                                     </div>
                                     <div className="mt-8">
+                                        <div className="mb-2">
+                                            <span className="text-base font-semibold leading-6 text-gray-900">
+                                                Patient Match Recommendation:&nbsp;
+                                            </span>
+                                            {trial.patient_match_result["answer"]}
+                                        </div>
                                         <h3 className="text-base font-semibold leading-6 text-gray-900">
                                             <a href={getNCTLink(trial.metadata["NCT ID"])} className="focus:outline-none">
                                                 {/* Extend touch target to entire panel */}
