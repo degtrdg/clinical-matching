@@ -4,7 +4,7 @@ from CancerNET.VAEClass import VAE
 import numpy as np
 import pandas as pd
 
-params = VAEClass.open_file("cancernet_hyperparams.pickle")
+params = open_file("cancernet_hyperparams.pickle")
 
 
 dxNet = VAE(
